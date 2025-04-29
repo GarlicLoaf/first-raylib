@@ -27,7 +27,7 @@ void PlayerInput(Player *player, const Rectangle *boundary, std::list<Magic> *ma
 
 
     // handle magic, quick and dirty for now
-    if (IsKeyPressed(KEY_O)) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         Vector2 mouse_pos{GetMousePosition()};
         Rectangle rect{player->pos.x, player->pos.y, 10.0f, 10.0f};
         Vector2 direction{Vector2Normalize(Vector2Subtract(mouse_pos, player->pos))};
