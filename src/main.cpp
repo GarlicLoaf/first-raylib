@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <list>
 
@@ -14,8 +15,13 @@ constexpr float tileset_size{16.0f};
 typedef struct Enemy {
     int type;
     int health;
+    Rectangle hitbox;
     Rectangle shape;
 } Enemy;
+
+void SpawnEnemy(Vector2 player_pos, std::list<Enemy> enemy_queue) {
+    // spawns an enemy in a certain radius from the player
+}
 
 int main() {
     // initialize the game
@@ -50,8 +56,16 @@ int main() {
     std::list<Enemy> enemy_queue{};
 
     Rectangle skelly_rect{64.0f, 16.0f, tileset_size, tileset_size};
-    Enemy skelly{0, 1, skelly_rect};
+    Enemy skelly{
+        0, 1,
+        Rectangle{screen_width / 2, screen_height / 2, 16.0f * 4, 16.0f * 4},
+        skelly_rect};
     enemy_queue.push_back(skelly);
+
+    int enemy_counter{};
+
+    std::list<Vector2> spawner_positions{Vector2{32.0f, 32.0f},
+                                         Vector2{112.0f, 112.0f}};
 
     while (!WindowShouldClose()) {
         PlayerInput(&player, &map_boundary, &magic_queue);
@@ -69,7 +83,7 @@ int main() {
 
             for (auto enemy{enemy_queue.begin()}; enemy != enemy_queue.end();
                  ++enemy) {
-                if (CheckCollisionRecs(enemy->shape, magic->shape)) {
+                if (CheckCollisionRecs(enemy->hitbox, magic->shape)) {
                     magic = magic_queue.erase(magic);
                     enemy = enemy_queue.erase(enemy);
                 }
@@ -80,14 +94,16 @@ int main() {
         BeginDrawing();
 
         DrawMap(&base_map, &tileset, tileset_size);
+        DrawSpawners(&tileset, &spawner_positions);
         DrawPlayer(&player, &player_texture, tileset_size);
 
         // draw enemy
         for (auto enemy = enemy_queue.begin(); enemy != enemy_queue.end();
              ++enemy) {
-            Rectangle target{screen_width / 2, screen_height / 2, tileset_size * 4, tileset_size * 4};
-            DrawTexturePro(player_texture, enemy->shape, target, Vector2{0.0f, 0.0f}, 0.0f,
-                           WHITE);
+            Rectangle target{enemy->hitbox.x, enemy->hitbox.y, tileset_size * 4,
+                             tileset_size * 4};
+            DrawTexturePro(player_texture, enemy->shape, target,
+                           Vector2{0.0f, 0.0f}, 0.0f, WHITE);
         }
 
         // draw the magic

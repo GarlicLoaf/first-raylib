@@ -1,7 +1,7 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <vector>
+#include <list>
 
 #include "raylib.h"
 
@@ -12,6 +12,7 @@ typedef struct Map {
 } Map;
 
 void DrawMap(Map *map, const Texture2D *tileset, float tile_size);
+void DrawSpawners(const Texture2D *tileset, std::list<Vector2> *positions);
 
 void TileMap(Map *map, int height, int width);
 
