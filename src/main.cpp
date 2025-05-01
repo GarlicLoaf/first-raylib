@@ -19,8 +19,17 @@ typedef struct Enemy {
     Rectangle shape;
 } Enemy;
 
-void SpawnEnemy(Vector2 player_pos, std::list<Enemy> enemy_queue) {
-    // spawns an enemy in a certain radius from the player
+void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
+                std::list<Vector2> *spawner_positions) {
+    int rand_spawner = std::rand() % 2;
+    Vector2 spawner_pos = *next(spawner_positions->begin(), rand_spawner);
+
+    Rectangle skelly_rect{64.0f, 16.0f, tileset_size, tileset_size};
+    Enemy skelly{
+        0, 1,
+        Rectangle{spawner_pos.x * 4, spawner_pos.y * 4, 16.0f * 4, 16.0f * 4},
+        skelly_rect};
+    enemy_queue->push_back(skelly);
 }
 
 int main() {
@@ -55,14 +64,10 @@ int main() {
     std::list<Magic> magic_queue{};
     std::list<Enemy> enemy_queue{};
 
-    Rectangle skelly_rect{64.0f, 16.0f, tileset_size, tileset_size};
-    Enemy skelly{
-        0, 1,
-        Rectangle{screen_width / 2, screen_height / 2, 16.0f * 4, 16.0f * 4},
-        skelly_rect};
-    enemy_queue.push_back(skelly);
-
     int enemy_counter{};
+    const int max_enemies{4};
+    int total_enemies{0};
+    const int to_defeat{7};
 
     std::list<Vector2> spawner_positions{Vector2{32.0f, 32.0f},
                                          Vector2{112.0f, 112.0f}};
@@ -86,8 +91,24 @@ int main() {
                 if (CheckCollisionRecs(enemy->hitbox, magic->shape)) {
                     magic = magic_queue.erase(magic);
                     enemy = enemy_queue.erase(enemy);
+                    enemy_counter--;
                 }
             }
+        }
+
+        // enemy spawning logic
+        if (enemy_counter <= 4 && total_enemies < to_defeat) {
+            SpawnEnemy(&player.pos, &enemy_queue, &spawner_positions);
+            enemy_counter++;
+            total_enemies++;
+        }
+
+        // enemy movement logic
+        for (Enemy& enemy : enemy_queue) {
+            const Vector2 direction{Vector2Normalize(Vector2Subtract(player.pos, Vector2{enemy.hitbox.x, enemy.hitbox.y}))};
+
+            enemy.hitbox.x += direction.x;
+            enemy.hitbox.y += direction.y;
         }
 
         // Drawing phase
