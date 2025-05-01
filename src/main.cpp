@@ -17,6 +17,7 @@ typedef struct Enemy {
     int health;
     Rectangle hitbox;
     Rectangle shape;
+    Vector2 pos;
 } Enemy;
 
 void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
@@ -28,7 +29,7 @@ void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
     Enemy skelly{
         0, 1,
         Rectangle{spawner_pos.x * 4, spawner_pos.y * 4, 16.0f * 4, 16.0f * 4},
-        skelly_rect};
+        skelly_rect, Vector2{spawner_pos.x + 7.0f, spawner_pos.y + 9.0f}};
     enemy_queue->push_back(skelly);
 }
 
@@ -60,7 +61,9 @@ int main() {
 
     TileMap(&base_map, map_size, map_size);
 
-    Player player{screen_width / 2, screen_height / 2};
+    Player player{2, Vector2{screen_width / 2.0f + 7.0f, screen_height / 2.0f + 9.0f},
+                  Rectangle{screen_width / 2 + 2.0f,
+                            screen_height / 2.0f + 11.0f, 12.0f, 4.0f}};
     std::list<Magic> magic_queue{};
     std::list<Enemy> enemy_queue{};
 
@@ -103,12 +106,21 @@ int main() {
             total_enemies++;
         }
 
-        // enemy movement logic
-        for (Enemy& enemy : enemy_queue) {
-            const Vector2 direction{Vector2Normalize(Vector2Subtract(player.pos, Vector2{enemy.hitbox.x, enemy.hitbox.y}))};
+        // enemy movement and collision
+        for (Enemy &enemy : enemy_queue) {
+            // movement
+            const Vector2 move_direction{Vector2Normalize(Vector2Subtract(
+                player.pos, Vector2{enemy.hitbox.x, enemy.hitbox.y}))};
 
-            enemy.hitbox.x += direction.x;
-            enemy.hitbox.y += direction.y;
+            enemy.hitbox.x += move_direction.x;
+            enemy.hitbox.y += move_direction.y;
+            enemy.pos = Vector2Add(enemy.pos, move_direction);
+
+            // collision
+            if (CheckCollisionRecs(player.hurtbox, enemy.hitbox)) {
+                Vector2 knock_direction{Vector2Normalize(Vector2Subtract(enemy.pos, player.pos))};
+                KnockbackPlayer(&player, &map_boundary, &knock_direction, 40.0f);
+            }
         }
 
         // Drawing phase

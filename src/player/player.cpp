@@ -20,9 +20,11 @@ void PlayerInput(Player *player, const Rectangle *boundary, std::list<Magic> *ma
 
     if (new_pos.x > boundary->x && new_pos.x < boundary->x + boundary->width) {
         player->pos.x = new_pos.x;
+        player->hurtbox.x += move_direction.x;
     }
     if (new_pos.y > boundary->y && new_pos.y < boundary->y + boundary->height) {
         player->pos.y = new_pos.y;
+        player->hurtbox.y += move_direction.y;
     }
 
 
@@ -37,10 +39,25 @@ void PlayerInput(Player *player, const Rectangle *boundary, std::list<Magic> *ma
     }
 }
 
+void KnockbackPlayer (Player *player, const Rectangle *boundary, Vector2 *direction, float strength) {
+    *direction = Vector2Scale(*direction, strength);
+
+    Vector2 new_pos = Vector2Add(player->pos, *direction);
+
+    if (new_pos.x > boundary->x && new_pos.x < boundary->x + boundary->width) {
+        player->pos.x = new_pos.x;
+        player->hurtbox.x += direction->x;
+    }
+    if (new_pos.y > boundary->y && new_pos.y < boundary->y + boundary->height) {
+        player->pos.y = new_pos.y;
+        player->hurtbox.y += direction->y;
+    }
+}
+
 void DrawPlayer(Player *player, const Texture2D *texture, float tile_size) {
     Rectangle rect{0.0f, 0.0f, tile_size, tile_size};
 
-    Rectangle target{player->pos.x, player->pos.y, tile_size * 4, tile_size * 4};
+    Rectangle target{player->pos.x - 7.0f, player->pos.y - 9.0f, tile_size * 4, tile_size * 4};
 
     DrawTexturePro(*texture, rect, target, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
 }
