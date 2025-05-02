@@ -7,6 +7,8 @@
 #include "resource_dir.h"
 #include "world/map.h"
 
+#define DEBUG_LEVEL 1
+
 // define some important constants
 constexpr int screen_width{16 * 4 * 10};
 constexpr int screen_height{600};
@@ -19,6 +21,15 @@ typedef struct Enemy {
     Rectangle shape;
     Vector2 pos;
 } Enemy;
+
+void DrawHitboxes(std::list<Enemy> *enemy_queue, Player *player) {
+    for (Enemy &enemy : *enemy_queue) {
+        DrawRectangle(enemy.hitbox.x, enemy.hitbox.y, enemy.hitbox.width,
+                      enemy.hitbox.height, GREEN);
+    }
+    DrawRectangle(player->hurtbox.x, player->hurtbox.y, player->hurtbox.width,
+                  player->hurtbox.height, BLUE);
+}
 
 void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
                 std::list<Vector2> *spawner_positions) {
@@ -61,16 +72,18 @@ int main() {
 
     TileMap(&base_map, map_size, map_size);
 
-    Player player{2, Vector2{screen_width / 2.0f + 7.0f, screen_height / 2.0f + 9.0f},
-                  Rectangle{screen_width / 2 + 2.0f,
-                            screen_height / 2.0f + 11.0f, 12.0f, 4.0f}};
+    Rectangle player_hurtbox{(screen_width / 2.0f) + 16.0f,
+                             (screen_height / 2.0f) + 40.0f, 8.0f * 4.0f, 4.0f * 4.0f};
+    Player player{
+        2, Vector2{screen_width / 2.0f + 7.0f, screen_height / 2.0f + 9.0f},
+        player_hurtbox};
     std::list<Magic> magic_queue{};
     std::list<Enemy> enemy_queue{};
 
     int enemy_counter{};
     const int max_enemies{4};
     int total_enemies{0};
-    const int to_defeat{7};
+    const int to_defeat{1};
 
     std::list<Vector2> spawner_positions{Vector2{32.0f, 32.0f},
                                          Vector2{112.0f, 112.0f}};
@@ -118,8 +131,10 @@ int main() {
 
             // collision
             if (CheckCollisionRecs(player.hurtbox, enemy.hitbox)) {
-                Vector2 knock_direction{Vector2Normalize(Vector2Subtract(enemy.pos, player.pos))};
-                KnockbackPlayer(&player, &map_boundary, &knock_direction, 40.0f);
+                Vector2 knock_direction{
+                    Vector2Normalize(Vector2Subtract(enemy.pos, player.pos))};
+                KnockbackPlayer(&player, &map_boundary, &knock_direction,
+                                40.0f);
             }
         }
 
@@ -143,6 +158,10 @@ int main() {
         for (auto magic = magic_queue.begin(); magic != magic_queue.end();
              ++magic) {
             DrawRectangle(magic->shape.x, magic->shape.y, 10, 10, RED);
+        }
+
+        if (DEBUG_LEVEL) {
+            DrawHitboxes(&enemy_queue, &player);
         }
 
         EndDrawing();
