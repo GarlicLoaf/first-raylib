@@ -7,7 +7,7 @@
 #include "resource_dir.h"
 #include "world/map.h"
 
-#define DEBUG_LEVEL 1
+#define DEBUG_LEVEL 0
 
 // define some important constants
 constexpr int screen_width{16 * 4 * 10};
@@ -26,9 +26,12 @@ void DrawHitboxes(std::list<Enemy> *enemy_queue, Player *player) {
     for (Enemy &enemy : *enemy_queue) {
         DrawRectangle(enemy.hitbox.x, enemy.hitbox.y, enemy.hitbox.width,
                       enemy.hitbox.height, GREEN);
+        DrawRectangle(enemy.pos.x, enemy.pos.y, 5.0f, 5.0f, ORANGE);
     }
     DrawRectangle(player->hurtbox.x, player->hurtbox.y, player->hurtbox.width,
                   player->hurtbox.height, BLUE);
+
+    DrawRectangle(player->pos.x, player->pos.y, 5.0f, 5.0f, YELLOW);
 }
 
 void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
@@ -40,7 +43,7 @@ void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
     Enemy skelly{
         0, 1,
         Rectangle{spawner_pos.x * 4, spawner_pos.y * 4, 16.0f * 4, 16.0f * 4},
-        skelly_rect, Vector2{spawner_pos.x + 7.0f, spawner_pos.y + 9.0f}};
+        skelly_rect, Vector2{spawner_pos.x * 4 + 7.0f * 4, spawner_pos.y * 4 + 9.0f * 4}};
     enemy_queue->push_back(skelly);
 }
 
@@ -75,7 +78,7 @@ int main() {
     Rectangle player_hurtbox{(screen_width / 2.0f) + 16.0f,
                              (screen_height / 2.0f) + 40.0f, 8.0f * 4.0f, 4.0f * 4.0f};
     Player player{
-        2, Vector2{screen_width / 2.0f + 7.0f, screen_height / 2.0f + 9.0f},
+        2, Vector2{screen_width / 2.0f + 7.0f * 4.0f, screen_height / 2.0f + 9.0f * 4.0f},
         player_hurtbox};
     std::list<Magic> magic_queue{};
     std::list<Enemy> enemy_queue{};
@@ -132,7 +135,7 @@ int main() {
             // collision
             if (CheckCollisionRecs(player.hurtbox, enemy.hitbox)) {
                 Vector2 knock_direction{
-                    Vector2Normalize(Vector2Subtract(enemy.pos, player.pos))};
+                    Vector2Normalize(Vector2Subtract(player.pos, enemy.pos))};
                 KnockbackPlayer(&player, &map_boundary, &knock_direction,
                                 40.0f);
             }

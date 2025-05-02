@@ -57,7 +57,7 @@ void KnockbackPlayer (Player *player, const Rectangle *boundary, Vector2 *direct
 void DrawPlayer(Player *player, const Texture2D *texture, float tile_size) {
     Rectangle rect{0.0f, 0.0f, tile_size, tile_size};
 
-    Rectangle target{player->pos.x - 7.0f, player->pos.y - 9.0f, tile_size * 4, tile_size * 4};
+    Rectangle target{player->pos.x - 7.0f * 4, player->pos.y - 9.0f * 4, tile_size * 4, tile_size * 4};
 
     DrawTexturePro(*texture, rect, target, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
 }
