@@ -39,7 +39,7 @@ void PlayerInput(Player *player, const Rectangle *boundary,
         Vector2 pos = Vector2Add(player->pos, Vector2{16.0f, 3.0f});
         Vector2 circ_pos = Vector2Subtract(pos, Vector2Scale(direction, 20.0f));
 
-        Magic new_magic{180, pos, direction, rect, 15.0f, circ_pos};
+        Magic new_magic{260, pos, direction, rect, 15.0f, circ_pos};
         magic_queue->push_back(new_magic);
     }
 }

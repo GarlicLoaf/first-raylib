@@ -89,7 +89,8 @@ void DrawMap(Map *map, const Texture2D *tileset, float tile_size) {
 void DrawSpawners(const Texture2D *tileset, std::list<Vector2> *positions) {
     for (const Vector2 &pos : *positions) {
         Rectangle rect{128.0f, 48.0f, 16.0f, 16.0f};
-        Rectangle target{pos.x * 4.0f, pos.y * 4.0f, 16.0f * 4.0f, 16.0f * 4.0f};
+        Rectangle target{pos.x * 4.0f, pos.y * 4.0f, 16.0f * 4.0f,
+                         16.0f * 4.0f};
         DrawTexturePro(*tileset, rect, target, Vector2{0.0f, 0.0f}, 0.0f,
                        WHITE);
     }
