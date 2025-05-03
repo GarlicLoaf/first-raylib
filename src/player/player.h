@@ -13,10 +13,10 @@ struct Player {
 };
 
 typedef struct Magic {
-    int type;
     int lifetime;
-    Rectangle shape;
+    Vector2 pos;
     Vector2 direction;
+    Rectangle shape;
 } Magic;
 
 const float PLAYER_SPEED = 5.0f;

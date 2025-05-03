@@ -43,7 +43,8 @@ void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
     Enemy skelly{
         0, 1,
         Rectangle{spawner_pos.x * 4, spawner_pos.y * 4, 16.0f * 4, 16.0f * 4},
-        skelly_rect, Vector2{spawner_pos.x * 4 + 7.0f * 4, spawner_pos.y * 4 + 9.0f * 4}};
+        skelly_rect,
+        Vector2{spawner_pos.x * 4 + 7.0f * 4, spawner_pos.y * 4 + 9.0f * 4}};
     enemy_queue->push_back(skelly);
 }
 
@@ -57,11 +58,12 @@ int main() {
 
     const Texture2D tileset = LoadTexture("tileset.png");
     const Texture2D player_texture = LoadTexture("player.png");
+    const Texture2D magic_texture = LoadTexture("flame.png");
 
     const int map_size{10};
     const int tileset_width{10};
     const float scale{4.0f};
-    const Rectangle map_boundary{16.0f * scale - 6.0f, 16.0f * scale - 30.0f,
+    const Rectangle map_boundary{16.0f * scale + 19.0f, 16.0f * scale + 5.0f,
                                  (map_size - 3) * tileset_size * scale + 10,
                                  (map_size - 3) * tileset_size * scale + 35};
 
@@ -76,10 +78,12 @@ int main() {
     TileMap(&base_map, map_size, map_size);
 
     Rectangle player_hurtbox{(screen_width / 2.0f) + 16.0f,
-                             (screen_height / 2.0f) + 40.0f, 8.0f * 4.0f, 4.0f * 4.0f};
-    Player player{
-        2, Vector2{screen_width / 2.0f + 7.0f * 4.0f, screen_height / 2.0f + 9.0f * 4.0f},
-        player_hurtbox};
+                             (screen_height / 2.0f) + 40.0f, 8.0f * 4.0f,
+                             4.0f * 4.0f};
+    Player player{2,
+                  Vector2{screen_width / 2.0f + 7.0f * 4.0f,
+                          screen_height / 2.0f + 9.0f * 4.0f},
+                  player_hurtbox};
     std::list<Magic> magic_queue{};
     std::list<Enemy> enemy_queue{};
 
@@ -97,8 +101,8 @@ int main() {
         // magic update step
         for (auto magic{magic_queue.begin()}; magic != magic_queue.end();
              ++magic) {
-            magic->shape.x += magic->direction.x * 8;
-            magic->shape.y += magic->direction.y * 8;
+            magic->pos =
+                Vector2Add(magic->pos, Vector2Scale(magic->direction, 8.0f));
             magic->lifetime -= 5;
 
             if (magic->lifetime <= 0) {
@@ -160,7 +164,13 @@ int main() {
         // draw the magic
         for (auto magic = magic_queue.begin(); magic != magic_queue.end();
              ++magic) {
-            DrawRectangle(magic->shape.x, magic->shape.y, 10, 10, RED);
+            Rectangle target{magic->pos.x + 5.0f, magic->pos.y + 9.0f, tileset_size * 4,
+                             tileset_size * 8};
+
+            DrawTexturePro(
+                magic_texture, magic->shape, target, Vector2{0.0f, 0.0f},
+                Vector2Angle(Vector2{1.0f, 0.0f}, magic->direction) * RAD2DEG - 90.0f,
+                WHITE);
         }
 
         if (DEBUG_LEVEL) {
@@ -172,6 +182,7 @@ int main() {
 
     UnloadTexture(tileset);
     UnloadTexture(player_texture);
+    UnloadTexture(magic_texture);
 
     return 0;
 }

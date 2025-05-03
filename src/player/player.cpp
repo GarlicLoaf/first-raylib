@@ -31,10 +31,10 @@ void PlayerInput(Player *player, const Rectangle *boundary, std::list<Magic> *ma
     // handle magic, quick and dirty for now
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         Vector2 mouse_pos{GetMousePosition()};
-        Rectangle rect{player->pos.x, player->pos.y, 10.0f, 10.0f};
+        Rectangle rect{0.0f, 0.0f, 16.0f, 32.0f};
         Vector2 direction{Vector2Normalize(Vector2Subtract(mouse_pos, player->pos))};
 
-        Magic new_magic{0, 180, rect, direction};
+        Magic new_magic{180, player->pos, direction, rect};
         magic_queue->push_back(new_magic);
     }
 }
