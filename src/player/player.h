@@ -17,6 +17,8 @@ typedef struct Magic {
     Vector2 pos;
     Vector2 direction;
     Rectangle shape;
+    float circ_radius;
+    Vector2 circ_pos;
 } Magic;
 
 const float PLAYER_SPEED = 5.0f;

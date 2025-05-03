@@ -7,8 +7,6 @@
 #include "resource_dir.h"
 #include "world/map.h"
 
-#define DEBUG_LEVEL 0
-
 // define some important constants
 constexpr int screen_width{16 * 4 * 10};
 constexpr int screen_height{600};
@@ -22,7 +20,7 @@ typedef struct Enemy {
     Vector2 pos;
 } Enemy;
 
-void DrawHitboxes(std::list<Enemy> *enemy_queue, Player *player) {
+void DrawHitboxes(std::list<Enemy> *enemy_queue, Player *player, std::list<Magic> *magic_queue) {
     for (Enemy &enemy : *enemy_queue) {
         DrawRectangle(enemy.hitbox.x, enemy.hitbox.y, enemy.hitbox.width,
                       enemy.hitbox.height, GREEN);
@@ -32,6 +30,10 @@ void DrawHitboxes(std::list<Enemy> *enemy_queue, Player *player) {
                   player->hurtbox.height, BLUE);
 
     DrawRectangle(player->pos.x, player->pos.y, 5.0f, 5.0f, YELLOW);
+
+    for (Magic &magic : *magic_queue) {
+        DrawCircle(magic.circ_pos.x, magic.circ_pos.y, magic.circ_radius, RED);
+    }
 }
 
 void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
@@ -49,6 +51,7 @@ void SpawnEnemy(Vector2 *player_pos, std::list<Enemy> *enemy_queue,
 }
 
 int main() {
+    int debug_level{0};
     // initialize the game
     SearchAndSetResourceDir("resources");
 
@@ -103,6 +106,8 @@ int main() {
              ++magic) {
             magic->pos =
                 Vector2Add(magic->pos, Vector2Scale(magic->direction, 8.0f));
+            magic->circ_pos =
+                Vector2Add(magic->circ_pos, Vector2Scale(magic->direction, 8.0f));
             magic->lifetime -= 5;
 
             if (magic->lifetime <= 0) {
@@ -145,6 +150,10 @@ int main() {
             }
         }
 
+        if (IsKeyPressed(KEY_C)) {
+            debug_level ^= 1;
+        }
+
         // Drawing phase
         BeginDrawing();
 
@@ -164,17 +173,18 @@ int main() {
         // draw the magic
         for (auto magic = magic_queue.begin(); magic != magic_queue.end();
              ++magic) {
-            Rectangle target{magic->pos.x + 5.0f, magic->pos.y + 9.0f, tileset_size * 4,
-                             tileset_size * 8};
+            Rectangle target{magic->pos.x, magic->pos.y,
+                             tileset_size * 2, tileset_size * 4};
 
             DrawTexturePro(
-                magic_texture, magic->shape, target, Vector2{0.0f, 0.0f},
-                Vector2Angle(Vector2{1.0f, 0.0f}, magic->direction) * RAD2DEG - 90.0f,
+                magic_texture, magic->shape, target, Vector2{target.width / 2.0f, target.height},
+                Vector2Angle(Vector2{1.0f, 0.0f}, magic->direction) * RAD2DEG -
+                    90.0f,
                 WHITE);
         }
 
-        if (DEBUG_LEVEL) {
-            DrawHitboxes(&enemy_queue, &player);
+        if (debug_level) {
+            DrawHitboxes(&enemy_queue, &player, &magic_queue);
         }
 
         EndDrawing();

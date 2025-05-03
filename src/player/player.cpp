@@ -1,7 +1,9 @@
 #include "player.h"
+
 #include "iostream"
 
-void PlayerInput(Player *player, const Rectangle *boundary, std::list<Magic> *magic_queue) {
+void PlayerInput(Player *player, const Rectangle *boundary,
+                 std::list<Magic> *magic_queue) {
     Vector2 move_direction{0, 0};
     if (IsKeyDown(KEY_W)) {
         move_direction.y -= PLAYER_SPEED;
@@ -27,19 +29,23 @@ void PlayerInput(Player *player, const Rectangle *boundary, std::list<Magic> *ma
         player->hurtbox.y += move_direction.y;
     }
 
-
     // handle magic, quick and dirty for now
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         Vector2 mouse_pos{GetMousePosition()};
         Rectangle rect{0.0f, 0.0f, 16.0f, 32.0f};
-        Vector2 direction{Vector2Normalize(Vector2Subtract(mouse_pos, player->pos))};
+        Vector2 direction{
+            Vector2Normalize(Vector2Subtract(mouse_pos, player->pos))};
 
-        Magic new_magic{180, player->pos, direction, rect};
+        Vector2 pos = Vector2Add(player->pos, Vector2{16.0f, 3.0f});
+        Vector2 circ_pos = Vector2Subtract(pos, Vector2Scale(direction, 20.0f));
+
+        Magic new_magic{180, pos, direction, rect, 15.0f, circ_pos};
         magic_queue->push_back(new_magic);
     }
 }
 
-void KnockbackPlayer (Player *player, const Rectangle *boundary, Vector2 *direction, float strength) {
+void KnockbackPlayer(Player *player, const Rectangle *boundary,
+                     Vector2 *direction, float strength) {
     *direction = Vector2Scale(*direction, strength);
 
     Vector2 new_pos = Vector2Add(player->pos, *direction);
@@ -57,7 +63,8 @@ void KnockbackPlayer (Player *player, const Rectangle *boundary, Vector2 *direct
 void DrawPlayer(Player *player, const Texture2D *texture, float tile_size) {
     Rectangle rect{0.0f, 0.0f, tile_size, tile_size};
 
-    Rectangle target{player->pos.x - 7.0f * 4, player->pos.y - 9.0f * 4, tile_size * 4, tile_size * 4};
+    Rectangle target{player->pos.x - 7.0f * 4, player->pos.y - 9.0f * 4,
+                     tile_size * 4, tile_size * 4};
 
     DrawTexturePro(*texture, rect, target, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
 }
