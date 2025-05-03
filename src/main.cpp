@@ -20,7 +20,8 @@ typedef struct Enemy {
     Vector2 pos;
 } Enemy;
 
-void DrawHitboxes(std::list<Enemy> *enemy_queue, Player *player, std::list<Magic> *magic_queue) {
+void DrawHitboxes(std::list<Enemy> *enemy_queue, Player *player,
+                  std::list<Magic> *magic_queue) {
     for (Enemy &enemy : *enemy_queue) {
         DrawRectangle(enemy.hitbox.x, enemy.hitbox.y, enemy.hitbox.width,
                       enemy.hitbox.height, GREEN);
@@ -62,6 +63,7 @@ int main() {
     const Texture2D tileset = LoadTexture("tileset.png");
     const Texture2D player_texture = LoadTexture("player.png");
     const Texture2D magic_texture = LoadTexture("flame.png");
+    const Texture2D heart_texture = LoadTexture("hearts.png");
 
     const int map_size{10};
     const int tileset_width{10};
@@ -83,7 +85,7 @@ int main() {
     Rectangle player_hurtbox{(screen_width / 2.0f) + 16.0f,
                              (screen_height / 2.0f) + 40.0f, 8.0f * 4.0f,
                              4.0f * 4.0f};
-    Player player{2,
+    Player player{5,
                   Vector2{screen_width / 2.0f + 7.0f * 4.0f,
                           screen_height / 2.0f + 9.0f * 4.0f},
                   player_hurtbox};
@@ -93,7 +95,7 @@ int main() {
     int enemy_counter{};
     const int max_enemies{4};
     int total_enemies{0};
-    const int to_defeat{1};
+    const int to_defeat{8};
 
     std::list<Vector2> spawner_positions{Vector2{32.0f, 32.0f},
                                          Vector2{112.0f, 112.0f}};
@@ -106,8 +108,8 @@ int main() {
              ++magic) {
             magic->pos =
                 Vector2Add(magic->pos, Vector2Scale(magic->direction, 8.0f));
-            magic->circ_pos =
-                Vector2Add(magic->circ_pos, Vector2Scale(magic->direction, 8.0f));
+            magic->circ_pos = Vector2Add(magic->circ_pos,
+                                         Vector2Scale(magic->direction, 8.0f));
             magic->lifetime -= 5;
 
             if (magic->lifetime <= 0) {
@@ -116,7 +118,8 @@ int main() {
 
             for (auto enemy{enemy_queue.begin()}; enemy != enemy_queue.end();
                  ++enemy) {
-                if (CheckCollisionRecs(enemy->hitbox, magic->shape)) {
+                if (CheckCollisionCircleRec(magic->circ_pos, magic->circ_radius,
+                                            enemy->hitbox)) {
                     magic = magic_queue.erase(magic);
                     enemy = enemy_queue.erase(enemy);
                     enemy_counter--;
@@ -137,8 +140,8 @@ int main() {
             const Vector2 move_direction{Vector2Normalize(Vector2Subtract(
                 player.pos, Vector2{enemy.hitbox.x, enemy.hitbox.y}))};
 
-            enemy.hitbox.x += move_direction.x;
-            enemy.hitbox.y += move_direction.y;
+            enemy.hitbox.x += move_direction.x * 1.8f;
+            enemy.hitbox.y += move_direction.y * 1.8f;
             enemy.pos = Vector2Add(enemy.pos, move_direction);
 
             // collision
@@ -147,6 +150,7 @@ int main() {
                     Vector2Normalize(Vector2Subtract(player.pos, enemy.pos))};
                 KnockbackPlayer(&player, &map_boundary, &knock_direction,
                                 40.0f);
+                player.health -= 1;
             }
         }
 
@@ -173,14 +177,24 @@ int main() {
         // draw the magic
         for (auto magic = magic_queue.begin(); magic != magic_queue.end();
              ++magic) {
-            Rectangle target{magic->pos.x, magic->pos.y,
-                             tileset_size * 2, tileset_size * 4};
+            Rectangle target{magic->pos.x, magic->pos.y, tileset_size * 2,
+                             tileset_size * 4};
 
             DrawTexturePro(
-                magic_texture, magic->shape, target, Vector2{target.width / 2.0f, target.height},
+                magic_texture, magic->shape, target,
+                Vector2{target.width / 2.0f, target.height},
                 Vector2Angle(Vector2{1.0f, 0.0f}, magic->direction) * RAD2DEG -
                     90.0f,
                 WHITE);
+        }
+
+        // draw health
+        for (int i{0}; i < player.health; i++) {
+            Vector2 position{i * tileset_size * 4.0f + 10.0f, 10.0f};
+
+            Rectangle rect{0.0f, 0.0f, tileset_size, tileset_size};
+            Rectangle target{position.x, position.y, tileset_size * 4.0f, tileset_size * 4.0f};
+            DrawTexturePro(heart_texture, rect, target, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
         }
 
         if (debug_level) {
@@ -193,6 +207,7 @@ int main() {
     UnloadTexture(tileset);
     UnloadTexture(player_texture);
     UnloadTexture(magic_texture);
+    UnloadTexture(heart_texture);
 
     return 0;
 }
